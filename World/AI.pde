@@ -1,0 +1,11 @@
+float weights[];
+
+
+class AI{
+  
+  
+  
+  
+  
+  
+}
