@@ -10,6 +10,7 @@ class Snake{
      head = new SnakePart(10, 10);
   }
   
+  //Draw the snake
   public void draw(){
     SnakePart current = head;
     while(current != null){
@@ -19,11 +20,13 @@ class Snake{
     this.move();
   }
   
+  //Change the direction of the snake
   public void changeDirection(int direction){
      this.direction = direction;
   }
   
-  private void move(){
+  //Move the snake 
+  private void move(){    
     SnakePart newH;
     switch(direction){
       case Direction.NORTH:
@@ -47,6 +50,7 @@ class Snake{
     this.isDead();
   }
   
+  //Check the length of the linked list
   private void checkLength(){
     SnakePart current = head;
     for(int i = 1; i < l; i++){
@@ -61,32 +65,59 @@ class Snake{
     }
   }
   
+  //Check if the snake is dead
   private void isDead(){
     if(head.p.x == 0 || head.p.y == 0 || head.p.x == width / 20 - 1 || head.p.y == height / 20 - 1){
-      l = 5;
-      direction = -1;
-      head = new SnakePart(10, 10);
+      reset();
       return;
     }
-    SnakePart current = head.next;
-    while(current != null){
-      if(current.p.equals(head.p)){
-        l = 5;
-        direction = -1;
-        head = new SnakePart(10, 10);
-        return;
-      }
-      current = current.next;
-    }
+    //SnakePart current = head.next;
+    //while(current != null){
+    //  if(current.p.equals(head.p)){
+    //    reset();
+    //    return;
+    //  }
+    //  current = current.next;
+    //}
   }
   
+  //Reset the variables
+  private void reset(){
+    l = 5;
+    direction = -1;
+    head = new SnakePart(10, 10);
+  }
+  
+  //Detect if the snake hit the apple
   public boolean hitApple(Apple a){
     return head.p.equals(a.p);
   }
   
+  //Increases the snake by 1
   public void makeLonger(){
     l++; 
   }
+  
+  public float getClosestDirection(Position p1){
+    Position p2 = s.head.p;
+    int xDiff = p2.x - p1.x;
+    int yDiff = p2.y - p2.y;    
+    
+    if(xDiff < yDiff){
+      if(p1.x > p2.x){
+        return Direction.EASTAVERAGE;
+      }else{
+        return Direction.WESTAVERAGE;
+      }
+    }else{
+      if(p1.y > p2.y){
+        return Direction.SOUTHAVERAGE;
+      }else{
+        return Direction.NORTHAVERAGE;
+      }
+    }
+  }
+  
   
   //SnakePart class
   private class SnakePart{      

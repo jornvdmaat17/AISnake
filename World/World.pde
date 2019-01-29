@@ -2,6 +2,7 @@ public static final int mul = 20;
 
 Snake s;
 Apple a;
+AI brain;
 
 boolean start;
 
@@ -10,6 +11,7 @@ void setup(){
   s = new Snake();
   a = new Apple(5, 5);
   start = false;
+  brain = new AI(2, 4, 1, s);
 }
 
 void draw(){
@@ -29,13 +31,28 @@ void draw(){
     s.makeLonger();
     a.change();
   }
-  if(start){
-    s.draw();
-    delay(1000/15);
+  //if(start){
+  //  s.draw();
+  //  delay(1000/15);
+  //}else{
+  //  fill(0, 255, 0);  
+  //  rect( 10 * 20, 10 * 20, 20, 20);
+  //}  
+  
+  delay(1000/15);
+  s.draw();
+  float res = brain.feedforward(new float[]{a.p.x, a.p.y})[0];
+  if(res < 0.25){
+    s.changeDirection(Direction.NORTH);
+  }else if(res < 0.50){
+    s.changeDirection(Direction.EAST); 
+  }else if(res < 0.75){
+    s.changeDirection(Direction.SOUTH);
   }else{
-    fill(0, 255, 0);  
-    rect( 10 * 20, 10 * 20, 20, 20);
-  }  
+    s.changeDirection(Direction.WEST); 
+  }
+  //System.out.println(res);
+  brain.train(new float[]{a.p.x, a.p.y}, new float[]{1});
 }
 
 void keyPressed(){

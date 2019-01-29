@@ -16,4 +16,8 @@ public class Position{
   public boolean equals(Position p){
     return (this.x == p.x && this.y == p.y);
   }
+  
+  public float multiply(float x){
+     return (this.x + this.y) * x; 
+  }
 }
