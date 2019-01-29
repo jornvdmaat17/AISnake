@@ -96,28 +96,7 @@ class Snake{
   //Increases the snake by 1
   public void makeLonger(){
     l++; 
-  }
-  
-  public float getClosestDirection(Position p1){
-    Position p2 = s.head.p;
-    int xDiff = p2.x - p1.x;
-    int yDiff = p2.y - p2.y;    
-    
-    if(xDiff < yDiff){
-      if(p1.x > p2.x){
-        return Direction.EASTAVERAGE;
-      }else{
-        return Direction.WESTAVERAGE;
-      }
-    }else{
-      if(p1.y > p2.y){
-        return Direction.SOUTHAVERAGE;
-      }else{
-        return Direction.NORTHAVERAGE;
-      }
-    }
-  }
-  
+  } 
   
   //SnakePart class
   private class SnakePart{      

@@ -9,7 +9,7 @@ boolean start;
 void setup(){
   size(420, 420);
   s = new Snake();
-  a = new Apple(5, 5);
+  a = new Apple(14, 14);
   start = false;
   brain = new AI(2, 4, 1, s);
 }
@@ -41,18 +41,19 @@ void draw(){
   
   delay(1000/15);
   s.draw();
-  float res = brain.feedforward(new float[]{a.p.x, a.p.y})[0];
-  if(res < 0.25){
+  float res = brain.feedforward(new float[]{a.p.x, a.p.y})[0] * 4;
+  if(res < 1){
     s.changeDirection(Direction.NORTH);
-  }else if(res < 0.50){
+  }else if(res < 2){
     s.changeDirection(Direction.EAST); 
-  }else if(res < 0.75){
+  }else if(res < 3){
     s.changeDirection(Direction.SOUTH);
   }else{
     s.changeDirection(Direction.WEST); 
   }
-  //System.out.println(res);
-  brain.train(new float[]{a.p.x, a.p.y}, new float[]{1});
+  System.out.println("Res: "+ res);
+  System.out.println("Closes: " + getClosestDirection(a));
+  brain.train(new float[]{a.p.x , a.p.y }, new float[]{getClosestDirection(a)});
 }
 
 void keyPressed(){
@@ -69,6 +70,28 @@ void keyPressed(){
     }
     if(keyCode == RIGHT && s.direction != Direction.WEST){
       s.changeDirection(Direction.EAST);
+    }
+  }
+}
+
+public float getClosestDirection(Apple a){
+  Position p1 = a.p;
+  Position p2 = s.head.p;
+  
+  int xDiff = p2.x - p1.x;
+  int yDiff = p2.y - p2.y;    
+
+  if(xDiff < yDiff){
+    if(p1.x > p2.x){
+      return Direction.EAST;
+    }else{
+      return Direction.WEST;
+    }
+  }else{
+    if(p1.y > p2.y){
+      return Direction.SOUTH;
+    }else{
+      return Direction.NORTH;
     }
   }
 }
