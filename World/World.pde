@@ -3,17 +3,45 @@ public static final int mul = 20;
 Snake s;
 Apple a;
 AI brain;
+AI xor;
+
+int loop = 0;
 
 boolean start;
 
 void setup(){
-  size(420, 420);
   s = new Snake();
   a = new Apple(14, 14);
   start = false;
-  brain = new AI(2, 4, 1, s);
+  //brain = new AI(1, 4, 1, s);
+  xor = new AI(2, 1, 1);
 }
 
+
+void draw(){  
+  for(int i = 0; i < 1000; i++){
+    if(loop == 0){
+      xor.train(new float[]{0, 0}, new float[]{0});
+    }
+    if(loop == 1){
+      xor.train(new float[]{1, 1}, new float[]{1});
+    }
+    if(loop == 2){
+      xor.train(new float[]{1, 0}, new float[]{0});
+    }
+    if(loop == 3){
+      xor.train(new float[]{0, 1}, new float[]{0});
+    }
+    loop = loop % 4;
+  }  
+  System.out.println(xor.feedforward(new float[]{0, 1})[0]);
+  delay(1000);
+  
+  
+}
+
+
+/*
 void draw(){
   background(0);
   
@@ -39,10 +67,15 @@ void draw(){
   //  rect( 10 * 20, 10 * 20, 20, 20);
   //}  
   
-  delay(1000/15);
+  float distance = (float)Math.sqrt((a.p.x - s.head.p.x)*(a.p.x - s.head.p.x) + (a.p.y - s.head.p.y)*(a.p.y - s.head.p.y));
+  
+  delay(1000/1500);
   s.draw();
-  float res = brain.feedforward(new float[]{a.p.x, a.p.y})[0] * 4;
+  float res = brain.feedforward(new float[]{distance})[0];
+  
+  
   if(res < 1){
+    
     s.changeDirection(Direction.NORTH);
   }else if(res < 2){
     s.changeDirection(Direction.EAST); 
@@ -52,8 +85,9 @@ void draw(){
     s.changeDirection(Direction.WEST); 
   }
   System.out.println("Res: "+ res);
-  System.out.println("Closes: " + getClosestDirection(a));
-  brain.train(new float[]{a.p.x , a.p.y }, new float[]{getClosestDirection(a)});
+  
+  
+  brain.train(new float[]{distance}, new float[]{getClosestDirection(a)});
 }
 
 void keyPressed(){
@@ -83,15 +117,17 @@ public float getClosestDirection(Apple a){
 
   if(xDiff < yDiff){
     if(p1.x > p2.x){
-      return Direction.EAST;
+      return Direction.EASTAVERAGE;
     }else{
-      return Direction.WEST;
+      return Direction.WESTAVERAGE;
     }
   }else{
     if(p1.y > p2.y){
-      return Direction.SOUTH;
+      return Direction.SOUTHAVERAGE;
     }else{
-      return Direction.NORTH;
+      return Direction.NORTHAVERAGE;
     }
   }
 }
+
+*/

@@ -1,5 +1,5 @@
 
-private static final float lr = 0.5;
+private static final float lr = 0.1;
 
 public class AI{
   
@@ -9,107 +9,117 @@ public class AI{
   Matrix ihWeights;
   Matrix hoWeights;  
   
-  Snake s;
+  Matrix bias_h;
+  Matrix bias_o;  
   
-  public AI(int inputNodes, int hiddenNodes, int outputNodes, Snake s){
+  public AI(int inputNodes, int hiddenNodes, int outputNodes){
     this.inputNodes = inputNodes;
     this.hiddenNodes = hiddenNodes;
     this.outputNodes = outputNodes;
     
     //+1 for bias
-    ihWeights = new Matrix(hiddenNodes, inputNodes + 1);
-    hoWeights = new Matrix(outputNodes, hiddenNodes + 1);
+    ihWeights = new Matrix(hiddenNodes, inputNodes);
+    hoWeights = new Matrix(outputNodes, hiddenNodes);
     
     //randomize those matrices
     ihWeights.randomize();
     hoWeights.randomize();
     
-    this.s = s;
+    this.bias_h = new Matrix(this.hiddenNodes, 1);
+    this.bias_o = new Matrix(this.outputNodes, 1);
+    this.bias_h.randomize();
+    this.bias_o.randomize();
+    
   }
   
   public float[] feedforward(float inputs[]){
-    Matrix input = ihWeights.singleColumnMatrixFromArray(inputs);    
+    //convert input to matrix and add bias
+    Matrix input = ihWeights.singleColumnMatrixFromArray(inputs);
     Matrix inputBias = input.addBias();
     
+    //Caclulate the hidden nodes by multiplying the weights by the input with bias
     Matrix hidden = ihWeights.dot(inputBias);
-    Matrix hiddenActivation = hidden.activate();
-    Matrix hiddenActivationBias = hiddenActivation.addBias();
+    Matrix hiddenBias = hidden.add(bias_h);
     
-    Matrix output = hoWeights.dot(hiddenActivationBias);  
-    Matrix outputActivation = output.activate();
+    //Activation function
+    Matrix hiddenActivation = hiddenBias.activate();
     
+    //Caculate the output nodes by multiplying the weights by the hidden nodes with bias
+    Matrix output = hoWeights.dot(hiddenActivation);  
+    Matrix outputBias = output.add(bias_o);
+    
+    //Activation function
+    Matrix outputActivation = outputBias.activate();
+       
+    //Convert output to array and return that
     return outputActivation.toArray();
   }
   
   public void train(float inputs[], float targets[]){
-     //This stuff again
-     Matrix input = ihWeights.singleColumnMatrixFromArray(inputs);    
+     //Calculate the ouput
+     //-----------------------------------------------------------
+     //convert input to matrix and add bias
+     Matrix input = ihWeights.singleColumnMatrixFromArray(inputs);
      Matrix inputBias = input.addBias();
     
+     //Caclulate the hidden nodes by multiplying the weights by the input with bias
      Matrix hidden = ihWeights.dot(inputBias);
-     Matrix hiddenActivation = hidden.activate();
-     Matrix hiddenActivationBias = hiddenActivation.addBias();
+     Matrix hiddenBias = hidden.add(bias_h);
+    
+     //Activation function
+     Matrix hiddenActivation = hiddenBias.activate();
+    
+     //Caculate the output nodes by multiplying the weights by the hidden nodes with bias
+     Matrix output = hoWeights.dot(hiddenActivation);  
+     Matrix outputBias = output.add(bias_o);
+    
+     //Activation function
+     Matrix outputActivation = outputBias.activate();   
+     //----------------------------------------------------------
      
-     Matrix hiddenTranspose = hiddenActivationBias.transpose();
-     Matrix inputTranspose = input.transpose();
-      
-     Matrix output = hoWeights.dot(hiddenActivationBias);  
-     Matrix outputActivation = output.activate();
-      
-     //Is the output
     
      // Set the correct targets to matrix
      Matrix answers = ihWeights.singleColumnMatrixFromArray(targets);
      
-     // Calculate error by substracting the output from the answers, still 1 x 1 matrix because 1 output
+     // Calculate error by substracting the output from the answers
      Matrix outputError = answers.subtract(outputActivation);
      
+     //Calculate the gradient
+     Matrix gradient = outputActivation.sigmoidDerived();
      
+     //Multiply the gradient with the outputError and learning rate
+     Matrix outputErrorGradient = gradient.dot(outputError);
+     outputErrorGradient.multiply(lr);     
+              
+     //Calculate the deltas by multiplying the gradient by the hiddentranspose
+     Matrix hiddenTranspose = hiddenActivation.transpose();
+     Matrix hoWeight_deltas = outputErrorGradient.dot(hiddenTranspose);
+     
+     //Adjust the weights by the deltas
+     hoWeights = hoWeights.add(hoWeight_deltas);
+     //Adjust the bias by gradient
+     bias_o = bias_o.add(outputErrorGradient);
+     
+     
+     
+     
+     //calculate hidden error  
      Matrix hoWeightsT = hoWeights.transpose();
      Matrix hiddenErrors = hoWeightsT.dot(outputError);
      
-     // Calculate the gradient, still 1 by 1
-     Matrix gradient = outputActivation.sigmoidDerived();
-     
-     
-     Matrix outputErrorGradient = gradient.dot(outputError);
-     outputErrorGradient.multiply(lr);
-     
-     
-     Matrix hoWeight_deltas = outputErrorGradient.dot(hiddenTranspose);
-     
-     //System.out.println(hoWeight_deltas.rows);
-     //System.out.println(hoWeight_deltas.cols);
-     //System.out.println("Rows deltas: " + hoWeight_deltas.rows);
-     //System.out.println("Cols deltas: " + hoWeight_deltas.cols);
-     //System.out.println("Rows weights: " + hoWeights.rows);
-     //System.out.println("Cols weight: " + hoWeights.cols);
-     
-     //System.out.println("Value delta 0: " + hoWeights.matrix[0][0]);
-     //System.out.println("Value delta 1: " + hoWeights.matrix[0][1]);
-     //System.out.println("Value delta 2: " + hoWeights.matrix[0][2]);
-     //System.out.println("Value delta 3: " + hoWeights.matrix[0][3]);
-     //System.out.println("Value delta 4: " + hoWeights.matrix[0][4]);
-     
-     //Tweak the weights 
-     
-     hoWeights = hoWeights.add(hoWeight_deltas);
-     
-     //System.out.println("Value delta 0: " + hoWeights.matrix[0][0]);
-     //System.out.println("Value delta 1: " + hoWeights.matrix[0][1]);
-     //System.out.println("Value delta 2: " + hoWeights.matrix[0][2]);
-     //System.out.println("Value delta 3: " + hoWeights.matrix[0][3]);
-     //System.out.println("Value delta 4: " + hoWeights.matrix[0][4]);
-     
-     
-     //calculate hidden gradient
-     
-     Matrix gradientHidden = outputActivation.sigmoidDerived();
+     //Calculate hidden gradient
+     Matrix gradientHidden = hiddenActivation.sigmoidDerived();
      Matrix hiddenErrorGradient = gradientHidden.dot(hiddenErrors);
      hiddenErrorGradient.multiply(lr);
      
+     // Calculate hidden deltas
+     Matrix inputTranspose = answers.transpose();
      Matrix ihWeight_deltas = hiddenErrorGradient.dot(inputTranspose);
+     
+     //Adjust the weights by the hidden deltas
      ihWeights = ihWeights.add(ihWeight_deltas);
+     //Adjust the bias by the gradient
+     bias_h = bias_h.add(hiddenErrorGradient);
      
   }
 }
